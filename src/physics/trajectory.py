@@ -1,0 +1,293 @@
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+import math
+
+import numpy as np
+from scipy.integrate import solve_ivp
+
+from .emission import EmittedElectron
+
+
+E_CHARGE = 1.602176634e-19       # coulombs
+ELECTRON_MASS = 9.1093837e-31    # kilograms
+ELECTRON_CHARGE = -E_CHARGE
+
+
+Vector3 = tuple[float, float, float]
+FieldFunction = Callable[[Vector3], Vector3]
+
+
+def zero_magnetic_field(position: Vector3) -> Vector3:
+    return 0.0, 0.0, 0.0
+
+
+def make_uniform_magnetic_field(field: Vector3) -> FieldFunction:
+    """
+    Create a constant magnetic-field function.
+
+    Input field components are in tesla.
+    """
+    bx, by, bz = field
+
+    def magnetic_field(position: Vector3) -> Vector3:
+        return bx, by, bz
+
+    return magnetic_field
+
+
+def make_uniform_suppressor_field(suppressor_voltage: float, grid_height: float) -> FieldFunction:
+    """
+    Create the uniform-field baseline between:
+
+        collector: z = 0, potential = 0 V
+        grid:      z = grid_height, potential = suppressor_voltage
+
+    A negative suppressor voltage produces an electric field in +z.
+    The negatively charged electron therefore accelerates toward -z.
+    """
+    if grid_height <= 0.0:
+        raise ValueError("grid_height must be positive.")
+
+    electric_field_z = -suppressor_voltage / grid_height
+
+    def electric_field(position: Vector3) -> Vector3:
+        return 0.0, 0.0, electric_field_z
+
+    return electric_field
+
+
+def initial_velocity_from_emission(
+    electron: EmittedElectron,
+) -> Vector3:
+    """
+    Convert electron energy and emission angles into velocity components.
+    """
+    energy_joules = electron.energy_eV * E_CHARGE
+
+    speed = math.sqrt(2.0 * energy_joules / ELECTRON_MASS)
+
+    vx = (speed * math.sin(electron.theta) * math.cos(electron.psi))
+    vy = (speed * math.sin(electron.theta) * math.sin(electron.psi))
+    vz = speed * math.cos(electron.theta)
+
+    return vx, vy, vz
+
+
+class TrajectoryStatus(Enum):
+    HIT_COLLECTOR = "hit_collector"
+    HIT_GRID = "hit_grid"
+    LEFT_RADIAL_DOMAIN = "left_radial_domain"
+    TIMEOUT = "timeout"
+    SOLVER_FAILURE = "solver_failure"
+
+
+@dataclass
+class TrajectoryResult:
+    status: TrajectoryStatus
+    final_position: Vector3
+    final_velocity: Vector3
+    event_time: float | None
+    solution: Any
+
+    @property
+    def hit_collector(self) -> bool:
+        return self.status == TrajectoryStatus.HIT_COLLECTOR
+
+    @property
+    def return_time(self) -> float | None:
+        if self.hit_collector:
+            return self.event_time
+
+        return None
+
+
+class Trajectory:
+    def __init__(
+        self,
+        efield: FieldFunction,
+        initial_position: Vector3,
+        initial_velocity: Vector3,
+        bfield: FieldFunction = zero_magnetic_field,
+    ):
+        self.efield = efield
+        self.bfield = bfield
+        self.initial_position = initial_position
+        self.initial_velocity = initial_velocity
+
+    @classmethod
+    def from_emitted_electron(
+        cls,
+        electron: EmittedElectron,
+        efield: FieldFunction,
+        bfield: FieldFunction = zero_magnetic_field,
+    ) -> "Trajectory":
+        initial_velocity = initial_velocity_from_emission(electron)
+
+        return cls(
+            efield=efield,
+            bfield=bfield,
+            initial_position=(electron.x0, electron.y0, 0.0),
+            initial_velocity=initial_velocity,
+        )
+
+    def equations_of_motion(self, t: float, state: np.ndarray) -> np.ndarray:
+        """
+        State:
+            [x, y, z, vx, vy, vz]
+
+        Lorentz-force equation:
+            m a = q(E + v × B)
+        """
+        x, y, z, vx, vy, vz = state
+
+        position = (x, y, z)
+
+        velocity = np.array([vx, vy, vz], dtype=float,)
+
+        electric_field = np.asarray(self.efield(position), dtype=float)
+        magnetic_field = np.asarray(self.bfield(position), dtype=float)
+
+        if electric_field.shape != (3,):
+            raise ValueError("Electric field must return three components.")
+
+        if magnetic_field.shape != (3,):
+            raise ValueError("Magnetic field must return three components.")
+
+        lorentz_force = ELECTRON_CHARGE * (
+            electric_field
+            + np.cross(velocity, magnetic_field)
+        )
+
+        acceleration = lorentz_force / ELECTRON_MASS
+
+        return np.array(
+            [
+                vx,
+                vy,
+                vz,
+                acceleration[0],
+                acceleration[1],
+                acceleration[2],
+            ],
+            dtype=float,
+        )
+
+    def solve(
+        self,
+        t_max: float = 1e-7,
+        max_step: float = 1e-10,
+        grid_height: float | None = None,
+        radial_limit: float | None = None,
+    ) -> TrajectoryResult:
+        if t_max <= 0.0:
+            raise ValueError("t_max must be positive.")
+
+        if max_step <= 0.0:
+            raise ValueError("max_step must be positive.")
+
+        x0, y0, z0 = self.initial_position
+        vx0, vy0, vz0 = self.initial_velocity
+
+        # Start slightly above the surface so z=0 does not
+        # trigger the collector event immediately.
+        z0 = max(z0, 1e-12)
+
+        initial_state = np.array(
+            [x0, y0, z0, vx0, vy0, vz0],
+            dtype=float,
+        )
+
+        def collector_event(t: float, state: np.ndarray) -> float:
+            return float(state[2])
+
+        collector_event.terminal = True
+        collector_event.direction = -1
+
+        events = [collector_event]
+        event_statuses = [TrajectoryStatus.HIT_COLLECTOR]
+
+        if grid_height is not None:
+            if grid_height <= 0.0:
+                raise ValueError("grid_height must be positive.")
+
+            def grid_event(t: float,state: np.ndarray) -> float:
+                return float(state[2] - grid_height)
+
+            grid_event.terminal = True
+            grid_event.direction = 1
+
+            events.append(grid_event)
+            event_statuses.append(TrajectoryStatus.HIT_GRID)
+
+        if radial_limit is not None:
+            if radial_limit <= 0.0:
+                raise ValueError("radial_limit must be positive.")
+
+            def radial_event(t: float, state: np.ndarray) -> float:
+                x, y = state[0], state[1]
+
+                return float(math.sqrt(x**2 + y**2) - radial_limit)
+
+            radial_event.terminal = True
+            radial_event.direction = 1
+
+            events.append(radial_event)
+            event_statuses.append(TrajectoryStatus.LEFT_RADIAL_DOMAIN)
+
+        absolute_tolerance = np.array(
+            [
+                1e-12,
+                1e-12,
+                1e-12,
+                1e-3,
+                1e-3,
+                1e-3,
+            ]
+        )
+
+        solution = solve_ivp(
+            fun=self.equations_of_motion,
+            t_span=(0.0, t_max),
+            y0=initial_state,
+            events=events,
+            rtol=1e-8,
+            atol=absolute_tolerance,
+            max_step=max_step,
+        )
+
+        final_state = solution.y[:, -1]
+        event_time = None
+
+        if not solution.success:
+            status = TrajectoryStatus.SOLVER_FAILURE
+
+        else:
+            status = TrajectoryStatus.TIMEOUT
+
+            for index, event_times in enumerate(solution.t_events):
+                if len(event_times) == 0:
+                    continue
+
+                status = event_statuses[index]
+                event_time = float(event_times[0])
+                final_state = solution.y_events[index][0]
+
+                break
+
+        return TrajectoryResult(
+            status=status,
+            final_position=(
+                float(final_state[0]),
+                float(final_state[1]),
+                float(final_state[2]),
+            ),
+            final_velocity=(
+                float(final_state[3]),
+                float(final_state[4]),
+                float(final_state[5]),
+            ),
+            event_time=event_time,
+            solution=solution,
+        )
