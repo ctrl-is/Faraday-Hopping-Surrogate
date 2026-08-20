@@ -1,17 +1,27 @@
-# Real-World Constants
-E_CHARGE = 1.602176634e-19 # C
-ELECTRON_MASS = 9.1093837e-31 # kg
-PROTON_MASS = 1.67262192e-27 # kg
-EPSILON_0 = 8.8541878128e-12 # Farads / m
-MU_0 = 1.25663706127e-6 # N / A^2
+# Physical constants
+ELEMENTARY_CHARGE = 1.602176634e-19  # C
+E_CHARGE = ELEMENTARY_CHARGE         # backwards-compatible alias
 
-# Conversions
+ELECTRON_CHARGE = -ELEMENTARY_CHARGE # C
+PROTON_CHARGE = ELEMENTARY_CHARGE    # C
+
+ELECTRON_MASS = 9.1093837e-31        # kg
+PROTON_MASS = 1.67262192e-27         # kg
+
+EPSILON_0 = 8.8541878128e-12         # F / m
+MU_0 = 1.25663706127e-6              # N / A^2
+
+
+# Unit conversions
 MM = 1e-3
-EV_TO_J = E_CHARGE
+EV_TO_J = ELEMENTARY_CHARGE
+J_TO_EV = 1.0 / ELEMENTARY_CHARGE
 
-# Faraday Cup Constants
+
+# Faraday cup default geometry / operating parameters
 DEFAULT_GAP_WIDTH = 0.1 * MM
 DEFAULT_GRID_SPACING = 3.5 * MM
 DEFAULT_GRID_HEIGHT = 3.9 * MM
 DEFAULT_SUPPRESSOR_VOLTAGE = -55.0
-DEFAULT_BEAM_RADIUS = 58 * MM
+DEFAULT_BEAM_RADIUS = 58.0 * MM
+DEFAULT_MODULATION_FREQUENCY = 1024.0  # Hz
