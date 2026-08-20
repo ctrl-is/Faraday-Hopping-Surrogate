@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -7,69 +6,36 @@ import math
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from .constants import E_CHARGE, ELECTRON_CHARGE, ELECTRON_MASS
 from .emission import EmittedElectron
+from .fields import FieldFunction, Vector3, zero_magnetic_field
 
 
-E_CHARGE = 1.602176634e-19       # coulombs
-ELECTRON_MASS = 9.1093837e-31    # kilograms
-ELECTRON_CHARGE = -E_CHARGE
-
-
-Vector3 = tuple[float, float, float]
-FieldFunction = Callable[[Vector3], Vector3]
-
-
-def zero_magnetic_field(position: Vector3) -> Vector3:
-    return 0.0, 0.0, 0.0
-
-
-def make_uniform_magnetic_field(field: Vector3) -> FieldFunction:
-    """
-    Create a constant magnetic-field function.
-
-    Input field components are in tesla.
-    """
-    bx, by, bz = field
-
-    def magnetic_field(position: Vector3) -> Vector3:
-        return bx, by, bz
-
-    return magnetic_field
-
-
-def make_uniform_suppressor_field(suppressor_voltage: float, grid_height: float) -> FieldFunction:
-    """
-    Create the uniform-field baseline between:
-
-        collector: z = 0, potential = 0 V
-        grid:      z = grid_height, potential = suppressor_voltage
-
-    A negative suppressor voltage produces an electric field in +z.
-    The negatively charged electron therefore accelerates toward -z.
-    """
-    if grid_height <= 0.0:
-        raise ValueError("grid_height must be positive.")
-
-    electric_field_z = -suppressor_voltage / grid_height
-
-    def electric_field(position: Vector3) -> Vector3:
-        return 0.0, 0.0, electric_field_z
-
-    return electric_field
-
-
-def initial_velocity_from_emission(
-    electron: EmittedElectron,
-) -> Vector3:
+def initial_velocity_from_emission(electron: EmittedElectron) -> Vector3:
     """
     Convert electron energy and emission angles into velocity components.
+
+    theta is measured from the +z surface normal.
+    psi is measured in the x-y plane.
     """
     energy_joules = electron.energy_eV * E_CHARGE
 
-    speed = math.sqrt(2.0 * energy_joules / ELECTRON_MASS)
+    speed = math.sqrt(
+        2.0 * energy_joules / ELECTRON_MASS
+    )
 
-    vx = (speed * math.sin(electron.theta) * math.cos(electron.psi))
-    vy = (speed * math.sin(electron.theta) * math.sin(electron.psi))
+    vx = (
+        speed
+        * math.sin(electron.theta)
+        * math.cos(electron.psi)
+    )
+
+    vy = (
+        speed
+        * math.sin(electron.theta)
+        * math.sin(electron.psi)
+    )
+
     vz = speed * math.cos(electron.theta)
 
     return vx, vy, vz
@@ -83,7 +49,7 @@ class TrajectoryStatus(Enum):
     SOLVER_FAILURE = "solver_failure"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TrajectoryResult:
     status: TrajectoryStatus
     final_position: Vector3
@@ -123,12 +89,18 @@ class Trajectory:
         efield: FieldFunction,
         bfield: FieldFunction = zero_magnetic_field,
     ) -> "Trajectory":
-        initial_velocity = initial_velocity_from_emission(electron)
+        initial_velocity = initial_velocity_from_emission(
+            electron
+        )
 
         return cls(
             efield=efield,
             bfield=bfield,
-            initial_position=(electron.x0, electron.y0, 0.0),
+            initial_position=(
+                electron.x0,
+                electron.y0,
+                0.0,
+            ),
             initial_velocity=initial_velocity,
         )
 
@@ -144,16 +116,30 @@ class Trajectory:
 
         position = (x, y, z)
 
-        velocity = np.array([vx, vy, vz], dtype=float,)
+        velocity = np.array(
+            [vx, vy, vz],
+            dtype=float,
+        )
 
-        electric_field = np.asarray(self.efield(position), dtype=float)
-        magnetic_field = np.asarray(self.bfield(position), dtype=float)
+        electric_field = np.asarray(
+            self.efield(position),
+            dtype=float,
+        )
+
+        magnetic_field = np.asarray(
+            self.bfield(position),
+            dtype=float,
+        )
 
         if electric_field.shape != (3,):
-            raise ValueError("Electric field must return three components.")
+            raise ValueError(
+                "Electric field must return three components."
+            )
 
         if magnetic_field.shape != (3,):
-            raise ValueError("Magnetic field must return three components.")
+            raise ValueError(
+                "Magnetic field must return three components."
+            )
 
         lorentz_force = ELECTRON_CHARGE * (
             electric_field
@@ -190,8 +176,8 @@ class Trajectory:
         x0, y0, z0 = self.initial_position
         vx0, vy0, vz0 = self.initial_velocity
 
-        # Start slightly above the surface so z=0 does not
-        # trigger the collector event immediately.
+        # Start slightly above the surface so z = 0 does not trigger
+        # the collector event immediately.
         z0 = max(z0, 1e-12)
 
         initial_state = np.array(
@@ -210,41 +196,59 @@ class Trajectory:
 
         if grid_height is not None:
             if grid_height <= 0.0:
-                raise ValueError("grid_height must be positive.")
+                raise ValueError(
+                    "grid_height must be positive."
+                )
 
-            def grid_event(t: float,state: np.ndarray) -> float:
+            def grid_event(
+                t: float,
+                state: np.ndarray,
+            ) -> float:
                 return float(state[2] - grid_height)
 
             grid_event.terminal = True
             grid_event.direction = 1
 
             events.append(grid_event)
-            event_statuses.append(TrajectoryStatus.HIT_GRID)
+            event_statuses.append(
+                TrajectoryStatus.HIT_GRID
+            )
 
         if radial_limit is not None:
             if radial_limit <= 0.0:
-                raise ValueError("radial_limit must be positive.")
+                raise ValueError(
+                    "radial_limit must be positive."
+                )
 
-            def radial_event(t: float, state: np.ndarray) -> float:
+            def radial_event(
+                t: float,
+                state: np.ndarray,
+            ) -> float:
                 x, y = state[0], state[1]
 
-                return float(math.sqrt(x**2 + y**2) - radial_limit)
+                return float(
+                    math.sqrt(x**2 + y**2)
+                    - radial_limit
+                )
 
             radial_event.terminal = True
             radial_event.direction = 1
 
             events.append(radial_event)
-            event_statuses.append(TrajectoryStatus.LEFT_RADIAL_DOMAIN)
+            event_statuses.append(
+                TrajectoryStatus.LEFT_RADIAL_DOMAIN
+            )
 
         absolute_tolerance = np.array(
             [
-                1e-12,
-                1e-12,
-                1e-12,
-                1e-3,
-                1e-3,
-                1e-3,
-            ]
+                1e-12,  # x
+                1e-12,  # y
+                1e-12,  # z
+                1e-3,   # vx
+                1e-3,   # vy
+                1e-3,   # vz
+            ],
+            dtype=float,
         )
 
         solution = solve_ivp(
@@ -266,7 +270,9 @@ class Trajectory:
         else:
             status = TrajectoryStatus.TIMEOUT
 
-            for index, event_times in enumerate(solution.t_events):
+            for index, event_times in enumerate(
+                solution.t_events
+            ):
                 if len(event_times) == 0:
                     continue
 
