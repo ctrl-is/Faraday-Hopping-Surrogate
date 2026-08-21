@@ -78,7 +78,7 @@ def load_yield_curve(csv_path: str | Path = DEFAULT_YIELD_CSV) -> tuple[np.ndarr
     return energies_eV, gammas
 
 
-def gamma_func(U_eV: float,csv_path: str | Path = DEFAULT_YIELD_CSV) -> float:
+def gamma_func(U_eV: float, csv_path: str | Path = DEFAULT_YIELD_CSV) -> float:
     """
     Estimate secondary-electron yield for H+ impact on Au.
 
@@ -135,10 +135,7 @@ def sample_beam_angle(
         raise ValueError("min_deg must be less than max_deg.")
 
     while True:
-        alpha_deg = rng.normal(
-            loc=mean_deg,
-            scale=std_deg,
-        )
+        alpha_deg = rng.normal(loc=mean_deg, scale=std_deg)
 
         if min_deg <= alpha_deg <= max_deg:
             return math.radians(float(alpha_deg))
@@ -218,9 +215,7 @@ def sample_secondary_energy_eV(
         scale = mean_energy_eV / shape
 
         while True:
-            energy_eV = float(
-                rng.gamma(shape=shape, scale=scale)
-            )
+            energy_eV = float(rng.gamma(shape=shape, scale=scale))
 
             if energy_eV <= max_energy_eV:
                 return energy_eV

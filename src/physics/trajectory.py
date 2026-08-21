@@ -20,9 +20,7 @@ def initial_velocity_from_emission(electron: EmittedElectron) -> Vector3:
     """
     energy_joules = electron.energy_eV * E_CHARGE
 
-    speed = math.sqrt(
-        2.0 * energy_joules / ELECTRON_MASS
-    )
+    speed = math.sqrt(2.0 * energy_joules / ELECTRON_MASS)
 
     vx = (
         speed
@@ -116,30 +114,16 @@ class Trajectory:
 
         position = (x, y, z)
 
-        velocity = np.array(
-            [vx, vy, vz],
-            dtype=float,
-        )
+        velocity = np.array([vx, vy, vz], dtype=float)
 
-        electric_field = np.asarray(
-            self.efield(position),
-            dtype=float,
-        )
-
-        magnetic_field = np.asarray(
-            self.bfield(position),
-            dtype=float,
-        )
+        electric_field = np.asarray(self.efield(position), dtype=float)
+        magnetic_field = np.asarray(self.bfield(position), dtype=float)
 
         if electric_field.shape != (3,):
-            raise ValueError(
-                "Electric field must return three components."
-            )
+            raise ValueError("Electric field must return three components.")
 
         if magnetic_field.shape != (3,):
-            raise ValueError(
-                "Magnetic field must return three components."
-            )
+            raise ValueError("Magnetic field must return three components.")
 
         lorentz_force = ELECTRON_CHARGE * (
             electric_field
@@ -180,10 +164,7 @@ class Trajectory:
         # the collector event immediately.
         z0 = max(z0, 1e-12)
 
-        initial_state = np.array(
-            [x0, y0, z0, vx0, vy0, vz0],
-            dtype=float,
-        )
+        initial_state = np.array([x0, y0, z0, vx0, vy0, vz0], dtype=float)
 
         def collector_event(t: float, state: np.ndarray) -> float:
             return float(state[2])
@@ -200,44 +181,29 @@ class Trajectory:
                     "grid_height must be positive."
                 )
 
-            def grid_event(
-                t: float,
-                state: np.ndarray,
-            ) -> float:
+            def grid_event(t: float, state: np.ndarray) -> float:
                 return float(state[2] - grid_height)
 
             grid_event.terminal = True
             grid_event.direction = 1
 
             events.append(grid_event)
-            event_statuses.append(
-                TrajectoryStatus.HIT_GRID
-            )
+            event_statuses.append(TrajectoryStatus.HIT_GRID)
 
         if radial_limit is not None:
             if radial_limit <= 0.0:
-                raise ValueError(
-                    "radial_limit must be positive."
-                )
+                raise ValueError("radial_limit must be positive.")
 
-            def radial_event(
-                t: float,
-                state: np.ndarray,
-            ) -> float:
+            def radial_event(t: float,state: np.ndarray) -> float:
                 x, y = state[0], state[1]
 
-                return float(
-                    math.sqrt(x**2 + y**2)
-                    - radial_limit
-                )
+                return float(math.sqrt(x**2 + y**2) - radial_limit)
 
             radial_event.terminal = True
             radial_event.direction = 1
 
             events.append(radial_event)
-            event_statuses.append(
-                TrajectoryStatus.LEFT_RADIAL_DOMAIN
-            )
+            event_statuses.append(TrajectoryStatus.LEFT_RADIAL_DOMAIN)
 
         absolute_tolerance = np.array(
             [
@@ -270,9 +236,7 @@ class Trajectory:
         else:
             status = TrajectoryStatus.TIMEOUT
 
-            for index, event_times in enumerate(
-                solution.t_events
-            ):
+            for index, event_times in enumerate(solution.t_events):
                 if len(event_times) == 0:
                     continue
 
