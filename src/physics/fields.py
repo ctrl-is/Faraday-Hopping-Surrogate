@@ -44,7 +44,7 @@ def make_grid_axes(
     nz: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     x_axis = np.linspace(-grid_spacing / 2, grid_spacing / 2, nx)
-    y_axis = np.linspace(-grid_height / 2, grid_height / 2, ny)
+    y_axis = np.linspace(-grid_spacing / 2, grid_spacing / 2, ny)
     z_axis = np.linspace(0, grid_height, nz)
 
     return x_axis, y_axis, z_axis
