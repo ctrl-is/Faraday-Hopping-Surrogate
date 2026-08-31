@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from src.physics.fields import FieldFunction, Vector3, is_inside_wire
+from src.physics.fields import FieldFunction, Vector3, is_inside_wire, zero_magnetic_field
 
 from .constants import E_CHARGE, ELECTRON_CHARGE, ELECTRON_MASS
 from .emission import EmittedElectron
@@ -36,7 +36,7 @@ class TrajectoryStatus(Enum):
     HIT_COLLECTOR = "hit_collector"
     HIT_GRID = "hit_grid"
     HIT_WIRE = "hit_wire"
-    PASSED_OPENING_GRID = "passed_opening_grid"
+    PASSED_GRID_OPENING = "passed_grid_opening"
     LEFT_RADIAL_DOMAIN = "left_radial_domain"
     TIMEOUT = "timeout"
     SOLVER_FAILURE = "solver_failure"
