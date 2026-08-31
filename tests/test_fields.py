@@ -15,7 +15,6 @@ from src.physics.fields import (
     solve_wire_grid_field,
 )
 
-
 GRID_SPACING = 3.5e-3
 GRID_HEIGHT = 3.9e-3
 WIRE_RADIUS = 2.5e-4
@@ -89,7 +88,9 @@ def test_initialize_potential_grid_linear_in_z() -> None:
     assert np.allclose(phi[:, :, -1], SUPPRESSOR_VOLTAGE)
 
     middle_index = len(z_values) // 2
-    expected_middle_voltage = SUPPRESSOR_VOLTAGE * (z_values[middle_index] / z_values[-1])
+    expected_middle_voltage = SUPPRESSOR_VOLTAGE * (
+        z_values[middle_index] / z_values[-1]
+    )
 
     assert np.allclose(phi[:, :, middle_index], expected_middle_voltage)
 
@@ -394,7 +395,9 @@ def test_wire_grid_boundary_conditions_fix_expected_points() -> None:
     assert fixed_mask[:, center_y_index, wire_z_index].all()
     assert fixed_mask[center_x_index, :, wire_z_index].all()
 
-    assert fixed_values[center_x_index, center_y_index, wire_z_index] == pytest.approx(SUPPRESSOR_VOLTAGE)
+    assert fixed_values[center_x_index, center_y_index, wire_z_index] == pytest.approx(
+        SUPPRESSOR_VOLTAGE
+    )
 
 
 def test_wire_grid_boundary_conditions_leave_mesh_opening_unfixed() -> None:
@@ -439,7 +442,7 @@ def test_solve_wire_grid_field_returns_finite_values() -> None:
     )
 
     Ex, Ey, Ez = electric_field(
-        (GRID_SPACING / 4.0, GRID_SPACING / 4.0,GRID_HEIGHT / 2.0)
+        (GRID_SPACING / 4.0, GRID_SPACING / 4.0, GRID_HEIGHT / 2.0)
     )
 
     assert np.isfinite(Ex)
