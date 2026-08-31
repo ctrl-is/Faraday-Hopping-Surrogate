@@ -74,9 +74,9 @@ class Trajectory:
 
     @classmethod
     def from_emitted_electron(
-        cls,
-        electron: EmittedElectron,
-        efield: FieldFunction,
+        cls, 
+        electron: EmittedElectron, 
+        efield: FieldFunction, 
         bfield: FieldFunction = zero_magnetic_field,
     ) -> "Trajectory":
         initial_velocity = initial_velocity_from_emission(electron)
@@ -85,9 +85,7 @@ class Trajectory:
             efield=efield,
             bfield=bfield,
             initial_position=(
-                electron.x0,
-                electron.y0,
-                0.0,
+                electron.x0, electron.y0, 0.0,
             ),
             initial_velocity=initial_velocity,
         )
@@ -134,7 +132,7 @@ class Trajectory:
         )
 
     def solve(
-        self,
+        self, 
         t_max: float = 1e-7,
         max_step: float = 1e-10,
         grid_height: float | None = None,
