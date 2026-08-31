@@ -1,24 +1,20 @@
+import math
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-import math
 
 import numpy as np
 import pandas as pd
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-DEFAULT_YIELD_CSV = (
-    PROJECT_ROOT
-    / "data"
-    / "processed"
-    / "eder1997_fig4.csv"
-)
+DEFAULT_YIELD_CSV = PROJECT_ROOT / "data" / "processed" / "eder1997_fig4.csv"
 
 
 @lru_cache(maxsize=4)
-def load_yield_curve(csv_path: str | Path = DEFAULT_YIELD_CSV) -> tuple[np.ndarray, np.ndarray]:
+def load_yield_curve(
+    csv_path: str | Path = DEFAULT_YIELD_CSV,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Load digitized H+ on Au secondary-electron yield measurements.
 
@@ -57,11 +53,9 @@ def load_yield_curve(csv_path: str | Path = DEFAULT_YIELD_CSV) -> tuple[np.ndarr
 
     # Exact duplicate energies are averaged so np.interp receives
     # strictly increasing x-values.
-    df = (
-        df.groupby("energy_eV", as_index=False, sort=True)
-        ["gamma_electrons_per_ion"]
-        .mean()
-    )
+    df = df.groupby("energy_eV", as_index=False, sort=True)[
+        "gamma_electrons_per_ion"
+    ].mean()
 
     energies_eV = df["energy_eV"].to_numpy(dtype=float)
     gammas = df["gamma_electrons_per_ion"].to_numpy(dtype=float)
@@ -97,9 +91,7 @@ def gamma_func(U_eV: float, csv_path: str | Path = DEFAULT_YIELD_CSV) -> float:
         # Avoid uncontrolled extrapolation.
         return float(gammas[-1])
 
-    return float(
-        np.interp(U_eV, energies_eV, gammas)
-    )
+    return float(np.interp(U_eV, energies_eV, gammas))
 
 
 def sample_num_emitted_electrons(

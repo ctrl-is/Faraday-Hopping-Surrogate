@@ -55,24 +55,15 @@ def test_initialize_potential_grid_linear_in_z() -> None:
         suppressor_voltage=-55.0,
     )
 
-    assert phi.shape == (
-        len(x_values),
-        len(y_values),
-        len(z_values),
-    )
+    assert phi.shape == (len(x_values), len(y_values), len(z_values))
 
     assert np.allclose(phi[:, :, 0], 0.0)
     assert np.allclose(phi[:, :, -1], -55.0)
 
     middle_index = len(z_values) // 2
-    expected_middle_voltage = -55.0 * (
-        z_values[middle_index] / z_values[-1]
-    )
+    expected_middle_voltage = -55.0 * (z_values[middle_index] / z_values[-1])
 
-    assert np.allclose(
-        phi[:, :, middle_index],
-        expected_middle_voltage,
-    )
+    assert np.allclose(phi[:, :, middle_index], expected_middle_voltage)
 
 
 def test_parallel_plate_boundary_conditions_mark_expected_points() -> None:
@@ -171,9 +162,7 @@ def test_compute_electric_field_from_parallel_plate_potential() -> None:
         z_values=z_values,
     )
 
-    expected_Ez = -(
-        suppressor_voltage - collector_voltage
-    ) / grid_height
+    expected_Ez = -(suppressor_voltage - collector_voltage) / grid_height
 
     assert Ex.shape == phi.shape
     assert Ey.shape == phi.shape
@@ -193,11 +182,7 @@ def test_make_interpolated_electric_field_returns_expected_values() -> None:
         nz=7,
     )
 
-    shape = (
-        len(x_values),
-        len(y_values),
-        len(z_values),
-    )
+    shape = (len(x_values), len(y_values), len(z_values))
 
     Ex = np.zeros(shape)
     Ey = np.zeros(shape)
@@ -238,9 +223,7 @@ def test_solve_parallel_plate_field_matches_expected_uniform_field() -> None:
 
     Ex, Ey, Ez = electric_field((0.0, 0.0, grid_height / 2.0))
 
-    expected_Ez = -(
-        suppressor_voltage - collector_voltage
-    ) / grid_height
+    expected_Ez = -(suppressor_voltage - collector_voltage) / grid_height
 
     assert Ex == pytest.approx(0.0, abs=1e-8)
     assert Ey == pytest.approx(0.0, abs=1e-8)

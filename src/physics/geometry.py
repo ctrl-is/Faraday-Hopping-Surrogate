@@ -1,7 +1,6 @@
+import math
 from dataclasses import dataclass
 from enum import Enum
-import math
-
 
 Vector2 = tuple[float, float]
 

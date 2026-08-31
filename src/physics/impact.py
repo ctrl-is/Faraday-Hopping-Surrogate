@@ -1,11 +1,9 @@
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
-from .constants import DEFAULT_BEAM_RADIUS, DEFAULT_GRID_HEIGHT
 from .geometry import CollectorGeometry, Region
-
 
 Vector2 = tuple[float, float]
 
@@ -23,7 +21,7 @@ class ProtonImpact:
             Region.A,
             Region.B,
             Region.C,
-            Region.D, 
+            Region.D,
         }
 
 
@@ -62,7 +60,7 @@ def sample_proton_impact(
 ) -> ProtonImpact:
     entry_position = sample_uniform_disk(rng=rng, radius=beam_radius)
     collector_position = collector_impact_from_entry(
-        entry_position=entry_position, 
+        entry_position=entry_position,
         alpha=alpha,
         grid_height=grid_height,
     )

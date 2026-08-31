@@ -30,7 +30,9 @@ def make_electron(x0: float, y0: float) -> EmittedElectron:
     )
 
 
-def make_result(status: TrajectoryStatus, final_position: tuple[float, float, float]) -> TrajectoryResult:
+def make_result(
+    status: TrajectoryStatus, final_position: tuple[float, float, float]
+) -> TrajectoryResult:
     return TrajectoryResult(
         status=status,
         final_position=final_position,
@@ -77,10 +79,7 @@ def test_landing_classification(
 ) -> None:
     electron = make_electron(*source)
 
-    trajectory_result = make_result(
-        TrajectoryStatus.HIT_COLLECTOR,
-        destination,
-    )
+    trajectory_result = make_result(TrajectoryStatus.HIT_COLLECTOR, destination)
 
     landing = classify_landing(
         electron=electron,
@@ -97,18 +96,11 @@ def test_invalid_source(geometry) -> None:
         y0=0.01,
     )
 
-    trajectory_result = make_result(
-        TrajectoryStatus.HIT_COLLECTOR,
-        (0.01, 0.01, 0.0),
-    )
+    trajectory_result = make_result(TrajectoryStatus.HIT_COLLECTOR, (0.01, 0.01, 0.0))
 
-    landing = classify_landing(
-        electron,
-        trajectory_result,
-        geometry,
-    )
+    landing = classify_landing(electron, trajectory_result, geometry)
 
-    assert (landing.outcome == LandingOutcome.INVALID_SOURCE)
+    assert landing.outcome == LandingOutcome.INVALID_SOURCE
 
 
 @pytest.mark.parametrize(
@@ -120,42 +112,22 @@ def test_invalid_source(geometry) -> None:
         TrajectoryStatus.SOLVER_FAILURE,
     ],
 )
-def test_electron_that_does_not_return(
-    geometry,
-    status,
-) -> None:
-    electron = make_electron(
-        x0=0.01,
-        y0=0.01,
-    )
+def test_electron_that_does_not_return(geometry, status) -> None:
+    electron = make_electron(x0=0.01, y0=0.01)
 
-    trajectory_result = make_result(
-        status,
-        (0.01, 0.01, 1e-3),
-    )
+    trajectory_result = make_result(status, (0.01, 0.01, 1e-3))
 
-    landing = classify_landing(
-        electron,
-        trajectory_result,
-        geometry,
-    )
+    landing = classify_landing(electron, trajectory_result, geometry)
 
-    assert (landing.outcome == LandingOutcome.DID_NOT_RETURN)
+    assert landing.outcome == LandingOutcome.DID_NOT_RETURN
 
 
 def test_hopped_property(geometry) -> None:
     electron = make_electron(x0=0.01, y0=0.01)
 
-    trajectory_result = make_result(
-        TrajectoryStatus.HIT_COLLECTOR,
-        (-0.01, 0.01, 0.0),
-    )
+    trajectory_result = make_result(TrajectoryStatus.HIT_COLLECTOR, (-0.01, 0.01, 0.0))
 
-    landing = classify_landing(
-        electron,
-        trajectory_result,
-        geometry,
-    )
+    landing = classify_landing(electron, trajectory_result, geometry)
 
     assert landing.hopped is True
     assert landing.source_region == Region.A

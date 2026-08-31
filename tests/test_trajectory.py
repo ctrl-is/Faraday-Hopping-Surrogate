@@ -32,16 +32,11 @@ def analytic_uniform_field_result(
 
     electric_field_z = -voltage / grid_height
 
-    acceleration_z = (
-        ELECTRON_CHARGE * electric_field_z
-        / ELECTRON_MASS
-    )
+    acceleration_z = ELECTRON_CHARGE * electric_field_z / ELECTRON_MASS
 
     discriminant = vz0**2 - 2.0 * acceleration_z * z0
 
-    return_time = (
-        -vz0 - math.sqrt(discriminant)
-    ) / acceleration_z
+    return_time = (-vz0 - math.sqrt(discriminant)) / acceleration_z
 
     final_x = electron.x0 + vx0 * return_time
     final_y = electron.y0 + vy0 * return_time
@@ -65,7 +60,9 @@ def test_uniform_field_matches_analytic_solution() -> None:
 
     initial_velocity = initial_velocity_from_emission(electron)
 
-    efield = make_uniform_suppressor_field(suppressor_voltage=voltage, grid_height=grid_height)
+    efield = make_uniform_suppressor_field(
+        suppressor_voltage=voltage, grid_height=grid_height
+    )
 
     trajectory = Trajectory(
         efield=efield,
@@ -99,10 +96,7 @@ def test_uniform_field_matches_analytic_solution() -> None:
     assert yf == pytest.approx(analytic_yf, rel=1e-5)
     assert zf == pytest.approx(0.0, abs=1e-9)
 
-    assert result.final_velocity[2] == pytest.approx(
-        analytic_final_vz,
-        rel=1e-5,
-    )
+    assert result.final_velocity[2] == pytest.approx(analytic_final_vz, rel=1e-5)
 
 
 def test_numerical_parallel_plate_field_matches_analytic_trajectory() -> None:
@@ -141,11 +135,7 @@ def test_numerical_parallel_plate_field_matches_analytic_trajectory() -> None:
         initial_velocity=initial_velocity,
     )
 
-    result = trajectory.solve(
-        t_max=1e-8,
-        max_step=1e-12,
-        grid_height=grid_height,
-    )
+    result = trajectory.solve(t_max=1e-8, max_step=1e-12, grid_height=grid_height)
 
     assert result.status == TrajectoryStatus.HIT_COLLECTOR
 
@@ -164,19 +154,13 @@ def test_numerical_parallel_plate_field_matches_analytic_trajectory() -> None:
 
     xf, yf, zf = result.final_position
 
-    assert result.return_time == pytest.approx(
-        analytic_return_time,
-        rel=1e-4,
-    )
+    assert result.return_time == pytest.approx(analytic_return_time, rel=1e-4)
 
     assert xf == pytest.approx(analytic_xf, abs=1e-10)
     assert yf == pytest.approx(analytic_yf, abs=1e-10)
     assert zf == pytest.approx(0.0, abs=1e-9)
 
-    assert result.final_velocity[2] == pytest.approx(
-        analytic_final_vz,
-        rel=1e-4,
-    )
+    assert result.final_velocity[2] == pytest.approx(analytic_final_vz, rel=1e-4)
 
 
 def test_electron_can_reach_grid() -> None:
@@ -187,18 +171,11 @@ def test_electron_can_reach_grid() -> None:
         initial_velocity=(0.0, 0.0, 1e6),
     )
 
-    result = trajectory.solve(
-        t_max=1e-7,
-        max_step=1e-11,
-        grid_height=1e-3,
-    )
+    result = trajectory.solve(t_max=1e-7, max_step=1e-11, grid_height=1e-3)
 
     assert result.status == TrajectoryStatus.HIT_GRID
 
-    assert result.final_position[2] == pytest.approx(
-        1e-3,
-        abs=1e-10,
-    )
+    assert result.final_position[2] == pytest.approx(1e-3, abs=1e-10)
 
 
 def test_electron_leaves_radial_domain() -> None:
@@ -226,10 +203,7 @@ def test_stationary_electron_times_out() -> None:
         initial_velocity=(0.0, 0.0, 0.0),
     )
 
-    result = trajectory.solve(
-        t_max=1e-9,
-        max_step=1e-10,
-    )
+    result = trajectory.solve(t_max=1e-9, max_step=1e-10)
 
     assert result.status == TrajectoryStatus.TIMEOUT
     assert result.return_time is None

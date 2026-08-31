@@ -53,15 +53,9 @@ def yield_csv(tmp_path):
 def test_load_yield_curve_filters_material(yield_csv) -> None:
     energies, gammas = load_yield_curve(yield_csv)
 
-    assert np.allclose(
-        energies,
-        [1000.0, 2000.0, 3000.0],
-    )
+    assert np.allclose(energies, [1000.0, 2000.0, 3000.0])
 
-    assert np.allclose(
-        gammas,
-        [0.10, 0.20, 0.30],
-    )
+    assert np.allclose(gammas, [0.10, 0.20, 0.30])
 
 
 def test_gamma_interpolation(yield_csv) -> None:
@@ -78,10 +72,7 @@ def test_gamma_above_range(yield_csv) -> None:
     assert gamma_func(4000.0, yield_csv) == pytest.approx(0.30)
 
 
-@pytest.mark.parametrize(
-    "model",
-    ["isotropic", "cosine_weighted"],
-)
+@pytest.mark.parametrize("model", ["isotropic", "cosine_weighted"])
 def test_sampled_direction_is_upward(model) -> None:
     rng = np.random.default_rng(123)
 
@@ -92,10 +83,7 @@ def test_sampled_direction_is_upward(model) -> None:
         assert 0.0 <= psi <= 2.0 * math.pi
 
 
-@pytest.mark.parametrize(
-    "model",
-    ["fixed", "exponential", "maxwellian"],
-)
+@pytest.mark.parametrize("model", ["fixed", "exponential", "maxwellian"])
 def test_sampled_energy_is_valid(model) -> None:
     rng = np.random.default_rng(123)
 
@@ -114,10 +102,7 @@ def test_invalid_direction_model() -> None:
     rng = np.random.default_rng(123)
 
     with pytest.raises(ValueError):
-        sample_emission_direction(
-            rng,
-            model="unknown",
-        )
+        sample_emission_direction(rng, model="unknown")
 
 
 def test_negative_electron_energy_rejected() -> None:

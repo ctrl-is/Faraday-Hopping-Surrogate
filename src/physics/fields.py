@@ -1,9 +1,8 @@
-from collections.abc import Callable
 import math
+from collections.abc import Callable
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-
 
 Vector3 = tuple[float, float, float]
 FieldFunction = Callable[[Vector3], Vector3]
@@ -22,7 +21,9 @@ def make_uniform_magnetic_field(field: Vector3) -> FieldFunction:
     return magnetic_field
 
 
-def make_uniform_suppressor_field(suppressor_voltage: float, grid_height: float) -> FieldFunction:
+def make_uniform_suppressor_field(
+    suppressor_voltage: float, grid_height: float
+) -> FieldFunction:
     if grid_height <= 0.0:
         raise ValueError("grid_height must be positive.")
 
@@ -32,6 +33,7 @@ def make_uniform_suppressor_field(suppressor_voltage: float, grid_height: float)
         return 0.0, 0.0, electric_field_z
 
     return electric_field
+
 
 # Helper Functions
 # =============================================================================
@@ -54,12 +56,16 @@ def _validate_even_spacing(values: np.ndarray, name: str) -> float:
     return spacing
 
 
-def _validate_field_shape(field: np.ndarray, expected_shape: tuple[int, int, int], name: str) -> None:
+def _validate_field_shape(
+    field: np.ndarray, expected_shape: tuple[int, int, int], name: str
+) -> None:
     if field.shape != expected_shape:
         raise ValueError(f"{name} must be {expected_shape}, got {field.shape}.")
 
 
-def _validate_wire_parameters(grid_spacing: float, grid_height: float, wire_radius: float) -> None:
+def _validate_wire_parameters(
+    grid_spacing: float, grid_height: float, wire_radius: float
+) -> None:
     if grid_spacing <= 0.0:
         raise ValueError("grid_spacing must be positive.")
 
@@ -90,7 +96,9 @@ def _validate_wire_domain(z_values: np.ndarray, grid_height: float) -> None:
         raise ValueError("z_values must start at or below the collector plane.")
 
     if z_values[-1] <= grid_height:
-        raise ValueError("z_values must extend above grid_height for the wire-grid model.")
+        raise ValueError(
+            "z_values must extend above grid_height for the wire-grid model."
+        )
 
     has_wire_slice = np.any(
         np.isclose(
@@ -103,7 +111,10 @@ def _validate_wire_domain(z_values: np.ndarray, grid_height: float) -> None:
 
     if not has_wire_slice:
         raise ValueError("z_values must contain grid_height for the wire-grid model.")
+
+
 # =============================================================================
+
 
 def make_grid_axes(
     grid_spacing: float,
@@ -228,12 +239,9 @@ def solve_laplace(
         next_phi = previous_phi.copy()
 
         next_phi[1:-1, 1:-1, 1:-1] = (
-            inv_dx2
-            * (previous_phi[2:, 1:-1, 1:-1]+ previous_phi[:-2, 1:-1, 1:-1])
-            + inv_dy2
-            * (previous_phi[1:-1, 2:, 1:-1] + previous_phi[1:-1, :-2, 1:-1])
-            + inv_dz2
-            * (previous_phi[1:-1, 1:-1, 2:] + previous_phi[1:-1, 1:-1, :-2])
+            inv_dx2 * (previous_phi[2:, 1:-1, 1:-1] + previous_phi[:-2, 1:-1, 1:-1])
+            + inv_dy2 * (previous_phi[1:-1, 2:, 1:-1] + previous_phi[1:-1, :-2, 1:-1])
+            + inv_dz2 * (previous_phi[1:-1, 1:-1, 2:] + previous_phi[1:-1, 1:-1, :-2])
         ) / denominator
 
         next_phi[fixed_mask] = fixed_values[fixed_mask]
@@ -421,10 +429,7 @@ def is_inside_wire(
     distance_to_x_wire = math.sqrt(y**2 + (z - grid_height) ** 2)
     distance_to_y_wire = math.sqrt(x**2 + (z - grid_height) ** 2)
 
-    return (
-        distance_to_x_wire <= wire_radius
-        or distance_to_y_wire <= wire_radius
-    )
+    return distance_to_x_wire <= wire_radius or distance_to_y_wire <= wire_radius
 
 
 def build_wire_mask(
@@ -451,9 +456,8 @@ def build_wire_mask(
     distance_to_x_wire = np.sqrt(Y**2 + (Z - grid_height) ** 2)
     distance_to_y_wire = np.sqrt(X**2 + (Z - grid_height) ** 2)
 
-    wire_mask = (
-        (distance_to_x_wire <= wire_radius)
-        | (distance_to_y_wire <= wire_radius)
+    wire_mask = (distance_to_x_wire <= wire_radius) | (
+        distance_to_y_wire <= wire_radius
     )
 
     return wire_mask

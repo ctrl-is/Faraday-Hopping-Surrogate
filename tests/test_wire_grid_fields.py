@@ -9,7 +9,6 @@ from src.physics.fields import (
     solve_wire_grid_field,
 )
 
-
 GRID_SPACING = 3.5e-3
 GRID_HEIGHT = 3.9e-3
 WIRE_RADIUS = 2.5e-4
@@ -172,7 +171,9 @@ def test_wire_grid_boundary_conditions_fix_collector_top_sides_and_wires() -> No
     assert fixed_mask[:, center_y_index, wire_z_index].all()
     assert fixed_mask[center_x_index, :, wire_z_index].all()
 
-    assert fixed_values[center_x_index, center_y_index, wire_z_index] == pytest.approx(SUPPRESSOR_VOLTAGE)
+    assert fixed_values[center_x_index, center_y_index, wire_z_index] == pytest.approx(
+        SUPPRESSOR_VOLTAGE
+    )
 
 
 def test_wire_grid_boundary_conditions_leave_mesh_opening_unfixed() -> None:

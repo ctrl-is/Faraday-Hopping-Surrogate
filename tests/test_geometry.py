@@ -7,7 +7,7 @@ from src.physics.geometry import CollectorGeometry, Region
 def geometry() -> CollectorGeometry:
     return CollectorGeometry(
         gap_width=1e-4,  # 0.1 mm
-        radius=0.06,     # 60 mm
+        radius=0.06,  # 60 mm
     )
 
 
@@ -24,9 +24,7 @@ def geometry() -> CollectorGeometry:
     ],
 )
 def test_region_at(
-    geometry: CollectorGeometry,
-    coords: tuple[float, float],
-    expected_region: Region,
+    geometry: CollectorGeometry, coords: tuple[float, float], expected_region: Region
 ) -> None:
     assert geometry.region_at(coords) == expected_region
 
@@ -43,10 +41,7 @@ def test_collector_boundary_is_inside(geometry: CollectorGeometry) -> None:
 
 def test_invalid_geometry() -> None:
     with pytest.raises(ValueError):
-        CollectorGeometry(
-            gap_width=-1e-4,
-            radius=0.06,
-        )
+        CollectorGeometry(gap_width=-1e-4, radius=0.06)
 
 
 def test_nonfinite_coordinate_raises(geometry: CollectorGeometry) -> None:

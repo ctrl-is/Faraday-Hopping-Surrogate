@@ -11,7 +11,6 @@ from src.physics.trajectory import (
     initial_velocity_from_emission,
 )
 
-
 GRID_SPACING = 3.5e-3
 GRID_HEIGHT = 3.9e-3
 WIRE_RADIUS = 2.5e-4

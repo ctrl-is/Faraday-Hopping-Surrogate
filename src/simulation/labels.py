@@ -5,7 +5,6 @@ from src.physics.emission import EmittedElectron
 from src.physics.geometry import CollectorGeometry, Region
 from src.physics.trajectory import TrajectoryResult, TrajectoryStatus
 
-
 QUADRANT_REGIONS = {
     Region.A,
     Region.B,
@@ -47,7 +46,6 @@ def classify_landing(
     """
     source_region = geometry.region_at((electron.x0, electron.y0))
 
-    # A valid emitted electron must originate from a collector quadrant.
     if source_region not in QUADRANT_REGIONS:
         return LandingResult(
             outcome=LandingOutcome.INVALID_SOURCE,
@@ -55,8 +53,6 @@ def classify_landing(
             final_region=None,
         )
 
-    # The electron may hit the grid, leave the domain, time out,
-    # or encounter a solver failure before reaching the collector.
     if trajectory_result.status != TrajectoryStatus.HIT_COLLECTOR:
         return LandingResult(
             outcome=LandingOutcome.DID_NOT_RETURN,
@@ -84,7 +80,5 @@ def classify_landing(
         raise RuntimeError(f"Unexpected final collector region: {final_region}")
 
     return LandingResult(
-        outcome=outcome,
-        source_region=source_region,
-        final_region=final_region,
+        outcome=outcome, source_region=source_region, final_region=final_region
     )

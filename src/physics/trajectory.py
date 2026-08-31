@@ -1,7 +1,7 @@
+import math
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-import math
 
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -22,17 +22,9 @@ def initial_velocity_from_emission(electron: EmittedElectron) -> Vector3:
 
     speed = math.sqrt(2.0 * energy_joules / ELECTRON_MASS)
 
-    vx = (
-        speed
-        * math.sin(electron.theta)
-        * math.cos(electron.psi)
-    )
+    vx = speed * math.sin(electron.theta) * math.cos(electron.psi)
 
-    vy = (
-        speed
-        * math.sin(electron.theta)
-        * math.sin(electron.psi)
-    )
+    vy = speed * math.sin(electron.theta) * math.sin(electron.psi)
 
     vz = speed * math.cos(electron.theta)
 
@@ -87,9 +79,7 @@ class Trajectory:
         efield: FieldFunction,
         bfield: FieldFunction = zero_magnetic_field,
     ) -> "Trajectory":
-        initial_velocity = initial_velocity_from_emission(
-            electron
-        )
+        initial_velocity = initial_velocity_from_emission(electron)
 
         return cls(
             efield=efield,
@@ -126,8 +116,7 @@ class Trajectory:
             raise ValueError("Magnetic field must return three components.")
 
         lorentz_force = ELECTRON_CHARGE * (
-            electric_field
-            + np.cross(velocity, magnetic_field)
+            electric_field + np.cross(velocity, magnetic_field)
         )
 
         acceleration = lorentz_force / ELECTRON_MASS
@@ -177,9 +166,7 @@ class Trajectory:
 
         if grid_height is not None:
             if grid_height <= 0.0:
-                raise ValueError(
-                    "grid_height must be positive."
-                )
+                raise ValueError("grid_height must be positive.")
 
             def grid_event(t: float, state: np.ndarray) -> float:
                 return float(state[2] - grid_height)
@@ -194,7 +181,7 @@ class Trajectory:
             if radial_limit <= 0.0:
                 raise ValueError("radial_limit must be positive.")
 
-            def radial_event(t: float,state: np.ndarray) -> float:
+            def radial_event(t: float, state: np.ndarray) -> float:
                 x, y = state[0], state[1]
 
                 return float(math.sqrt(x**2 + y**2) - radial_limit)
@@ -210,9 +197,9 @@ class Trajectory:
                 1e-12,  # x
                 1e-12,  # y
                 1e-12,  # z
-                1e-3,   # vx
-                1e-3,   # vy
-                1e-3,   # vz
+                1e-3,  # vx
+                1e-3,  # vy
+                1e-3,  # vz
             ],
             dtype=float,
         )
