@@ -209,7 +209,7 @@ def test_electron_leaves_radial_domain() -> None:
         initial_velocity=(1e6, 0.0, 0.0),
     )
 
-    result = trajectory.solve(t_max=1e-7, vmax_step=1e-11, radial_limit=1e-2)
+    result = trajectory.solve(t_max=1e-7, max_step=1e-11, radial_limit=1e-2)
 
     assert result.status == TrajectoryStatus.LEFT_RADIAL_DOMAIN
 
