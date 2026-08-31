@@ -6,7 +6,12 @@ from typing import Any
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from src.physics.fields import FieldFunction, Vector3, is_inside_wire, zero_magnetic_field
+from src.physics.fields import (
+    FieldFunction,
+    Vector3,
+    is_inside_wire,
+    zero_magnetic_field,
+)
 
 from .constants import E_CHARGE, ELECTRON_CHARGE, ELECTRON_MASS
 from .emission import EmittedElectron
