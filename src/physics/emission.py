@@ -8,7 +8,7 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-DEFAULT_YIELD_CSV = PROJECT_ROOT / "data" / "processed" / "eder1997_fig4.csv"
+DEFAULT_YIELD_CSV = PROJECT_ROOT / "data" / "raw" / "eder1997_fig4.csv"
 
 
 @lru_cache(maxsize=4)
