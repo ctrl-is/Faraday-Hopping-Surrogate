@@ -15,7 +15,7 @@ from statistics import fmean, stdev
 import matplotlib.pyplot as plt
 
 INPUT_PATH = Path("data/processed/suppressor_voltage_sweep.csv")
-OUTPUT_DIR = Path("figures")
+OUTPUT_DIR = Path("reports/figures")
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
