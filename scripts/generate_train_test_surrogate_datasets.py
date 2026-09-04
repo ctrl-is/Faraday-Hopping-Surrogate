@@ -151,11 +151,13 @@ def build_config(parameters: DesignParameters, num_protons: int) -> MonteCarloCo
 
 
 def build_magnetic_field(parameters: DesignParameters):
-    return make_uniform_magnetic_field(
-        bx=parameters.magnetic_field_x_nT * NANOTESLA_TO_TESLA,
-        by=parameters.magnetic_field_y_nT * NANOTESLA_TO_TESLA,
-        bz=parameters.magnetic_field_z_nT * NANOTESLA_TO_TESLA,
+    magnetic_field = (
+        parameters.magnetic_field_x_nT * NANOTESLA_TO_TESLA,
+        parameters.magnetic_field_y_nT * NANOTESLA_TO_TESLA,
+        parameters.magnetic_field_z_nT * NANOTESLA_TO_TESLA,
     )
+    
+    return make_uniform_magnetic_field(magnetic_field)
 
 
 def safe_divide(numerator: int, denominator: int) -> float:
