@@ -23,7 +23,6 @@ from src.simulation.monte_carlo import (
     estimate_hopping_probability,
 )
 
-
 OUTPUT_PATH = Path("data/processed/surrogate_dataset.csv")
 
 NUM_DESIGNS = 12
@@ -87,11 +86,11 @@ def safe_divide(numerator: int, denominator: int) -> float:
     return numerator / denominator
 
 
-def summarize_pooled_results(summaries: list[MonteCarloSummary]) -> dict[str, int | float]:
+def summarize_pooled_results(
+    summaries: list[MonteCarloSummary],
+) -> dict[str, int | float]:
     num_protons = sum(summary.num_protons for summary in summaries)
-    valid_proton_impacts = sum(
-        summary.valid_proton_impacts for summary in summaries
-    )
+    valid_proton_impacts = sum(summary.valid_proton_impacts for summary in summaries)
     total_emitted_electrons = sum(
         summary.total_emitted_electrons for summary in summaries
     )
@@ -101,9 +100,7 @@ def summarize_pooled_results(summaries: list[MonteCarloSummary]) -> dict[str, in
     ions_with_hopper_count = sum(
         summary.ions_with_hopper_count for summary in summaries
     )
-    same_quadrant_count = sum(
-        summary.same_quadrant_count for summary in summaries
-    )
+    same_quadrant_count = sum(summary.same_quadrant_count for summary in summaries)
     different_quadrant_count = sum(
         summary.different_quadrant_count for summary in summaries
     )
@@ -113,12 +110,8 @@ def summarize_pooled_results(summaries: list[MonteCarloSummary]) -> dict[str, in
     passed_grid_opening_count = sum(
         summary.passed_grid_opening_count for summary in summaries
     )
-    did_not_return_count = sum(
-        summary.did_not_return_count for summary in summaries
-    )
-    solver_failure_count = sum(
-        summary.solver_failure_count for summary in summaries
-    )
+    did_not_return_count = sum(summary.did_not_return_count for summary in summaries)
+    solver_failure_count = sum(summary.solver_failure_count for summary in summaries)
 
     return {
         "num_protons": num_protons,
@@ -150,7 +143,9 @@ def summarize_pooled_results(summaries: list[MonteCarloSummary]) -> dict[str, in
 
 
 def design_to_row(
-    design_id: int, parameters: DesignParameters, pooled_summary: dict[str, int | float],
+    design_id: int,
+    parameters: DesignParameters,
+    pooled_summary: dict[str, int | float],
 ) -> dict[str, int | float | str]:
     return {
         "design_id": design_id,
@@ -173,10 +168,12 @@ def design_to_row(
 
 
 def run_design(
-    design_id: int, parameters: DesignParameters,
+    design_id: int,
+    parameters: DesignParameters,
 ) -> dict[str, int | float | str]:
     geometry = CollectorGeometry(
-        gap_width=parameters.gap_width, radius=DEFAULT_COLLECTOR_RADIUS,
+        gap_width=parameters.gap_width,
+        radius=DEFAULT_COLLECTOR_RADIUS,
     )
 
     electric_field = solve_wire_grid_field(

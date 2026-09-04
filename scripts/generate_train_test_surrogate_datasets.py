@@ -36,7 +36,6 @@ from src.simulation.monte_carlo import (
     estimate_hopping_probability,
 )
 
-
 TRAIN_OUTPUT_PATH = Path("data/processed/surrogate_train.csv")
 TEST_OUTPUT_PATH = Path("data/processed/surrogate_test.csv")
 
@@ -171,9 +170,7 @@ def summarize_pooled_results(
 ) -> dict[str, int | float]:
     num_protons = sum(summary.num_protons for summary in summaries)
 
-    valid_proton_impacts = sum(
-        summary.valid_proton_impacts for summary in summaries
-    )
+    valid_proton_impacts = sum(summary.valid_proton_impacts for summary in summaries)
 
     total_emitted_electrons = sum(
         summary.total_emitted_electrons for summary in summaries
@@ -187,9 +184,7 @@ def summarize_pooled_results(
         summary.ions_with_hopper_count for summary in summaries
     )
 
-    same_quadrant_count = sum(
-        summary.same_quadrant_count for summary in summaries
-    )
+    same_quadrant_count = sum(summary.same_quadrant_count for summary in summaries)
 
     different_quadrant_count = sum(
         summary.different_quadrant_count for summary in summaries
@@ -203,13 +198,9 @@ def summarize_pooled_results(
         summary.passed_grid_opening_count for summary in summaries
     )
 
-    did_not_return_count = sum(
-        summary.did_not_return_count for summary in summaries
-    )
+    did_not_return_count = sum(summary.did_not_return_count for summary in summaries)
 
-    solver_failure_count = sum(
-        summary.solver_failure_count for summary in summaries
-    )
+    solver_failure_count = sum(summary.solver_failure_count for summary in summaries)
 
     return {
         "num_protons": num_protons,
@@ -290,7 +281,9 @@ def design_to_row(
 
 
 def run_design(
-    split: str, design_id: int, parameters: DesignParameters,
+    split: str,
+    design_id: int,
+    parameters: DesignParameters,
 ) -> dict[str, int | float | str]:
     geometry = CollectorGeometry(
         gap_width=parameters.gap_width_mm * MM,
@@ -313,7 +306,8 @@ def run_design(
     magnetic_field = build_magnetic_field(parameters=parameters)
 
     config = build_config(
-        parameters=parameters, num_protons=NUM_PROTONS_PER_SEED,
+        parameters=parameters,
+        num_protons=NUM_PROTONS_PER_SEED,
     )
 
     summaries = []
@@ -350,7 +344,8 @@ def run_design(
 
 
 def write_rows(
-    output_path: Path, rows: list[dict[str, int | float | str]],
+    output_path: Path,
+    rows: list[dict[str, int | float | str]],
 ) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
