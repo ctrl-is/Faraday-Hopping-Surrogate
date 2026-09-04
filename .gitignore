@@ -219,3 +219,7 @@ __marimo__/
 
 #Random stuff
 .DS_Store
+
+# Data Generation
+data/processed/surrogate_train.csv
+data/processed/surrogate_test.csv

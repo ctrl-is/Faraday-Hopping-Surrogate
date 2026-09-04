@@ -39,11 +39,11 @@ from src.simulation.monte_carlo import (
 TRAIN_OUTPUT_PATH = Path("data/processed/surrogate_train.csv")
 TEST_OUTPUT_PATH = Path("data/processed/surrogate_test.csv")
 
-TRAIN_DESIGNS = 1000
+TRAIN_DESIGNS = 1_000
 TEST_DESIGNS = 200
 
-NUM_PROTONS_PER_SEED = 10000
-SEEDS_PER_DESIGN = 5
+NUM_PROTONS_PER_SEED = 5_000
+SEEDS_PER_DESIGN = 3
 DESIGN_SEED = 123
 
 FIELD_NX = 9
