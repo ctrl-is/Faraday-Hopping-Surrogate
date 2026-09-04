@@ -156,7 +156,7 @@ def build_magnetic_field(parameters: DesignParameters):
         parameters.magnetic_field_y_nT * NANOTESLA_TO_TESLA,
         parameters.magnetic_field_z_nT * NANOTESLA_TO_TESLA,
     )
-    
+
     return make_uniform_magnetic_field(magnetic_field)
 
 
